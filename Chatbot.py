@@ -293,7 +293,11 @@ def main():
         .stChatInput {
             background-color: #FFFFFF !important;
         }
-        
+        .stTextInput > div > div > input:focus {
+    border-color: #2900C8 !important;
+    box-shadow: 0 0 0 3px rgba(41, 0, 200, 0.1) !important;
+    outline: 2px solid #2900C8 !important;
+}
         .stChatInput > div {
             background-color: #FFFFFF !important;
             border: 2px solid #2900C8 !important;
