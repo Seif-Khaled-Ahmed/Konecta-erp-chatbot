@@ -18,6 +18,22 @@ from datetime import datetime
 import json
 import re
 
+import streamlit as st
+import requests
+import os
+
+# Get API key from secrets
+api_key = st.secrets["API_KEY"]
+api_url = st.secrets["API_URL"]
+
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json"
+}
+
+def call_private_api(data):
+    response = requests.post(api_url, json=data, headers=headers)
+    return response.json()
 # ============================================
 # CONFIGURATION
 # ============================================
@@ -280,7 +296,7 @@ def expense_submission_form():
 # MAIN APP
 # ============================================
 def main():
-    # Enhanced Custom CSS for white and blue theme with better contrast
+    # Enhanced Custom CSS - Complete dark theme removal with all fixes
     st.markdown("""
         <style>
         /* Import Google Font */
@@ -290,18 +306,109 @@ def main():
             font-family: 'Inter', sans-serif;
         }
         
-        /* Main background - Light blue-grey */
-        .stApp {
-            background: linear-gradient(135deg, #F0F4F8 0%, #E8F1F8 100%);
+        /* FORCE LIGHT THEME EVERYWHERE */
+        .stApp, .main, .block-container, body, html {
+            background: linear-gradient(135deg, #F0F4F8 0%, #E8F1F8 100%) !important;
+            color: #2C3E50 !important;
         }
         
-        /* Remove dark theme defaults */
-        .stApp, .stApp > header {
+        /* Remove dark theme from all containers */
+        .stApp > header, header[data-testid="stHeader"] {
             background-color: transparent !important;
         }
         
+        footer {
+            background-color: transparent !important;
+            color: #64B5F6 !important;
+        }
+        
+        /* CRITICAL: Fix bottom chat input dark background */
+        .stBottom, [data-testid="stBottom"], 
+        .stChatFloatingInputContainer,
+        [data-testid="stChatFloatingInputContainer"],
+        .stChatInputContainer {
+            background-color: #F0F4F8 !important;
+            background: #F0F4F8 !important;
+            border-top: 3px solid #2196F3 !important;
+            padding: 20px !important;
+            box-shadow: 0 -4px 20px rgba(33, 150, 243, 0.1) !important;
+        }
+        
+        /* Force remove dark background on bottom area */
+        [data-testid="stBottomBlockContainer"],
+        .stBottomContainer {
+            background-color: #F0F4F8 !important;
+            background: #F0F4F8 !important;
+        }
+        
+        /* Chat input box itself */
+        .stChatInput {
+            background-color: #FFFFFF !important;
+        }
+        
+        .stChatInput > div {
+            background-color: #FFFFFF !important;
+            border: 2px solid #2196F3 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15) !important;
+        }
+        
+        /* Chat input textarea */
+        .stChatInput textarea {
+            background-color: #FFFFFF !important;
+            color: #1A1A1A !important;
+            font-size: 15px !important;
+            border: none !important;
+        }
+        
+        .stChatInput textarea::placeholder {
+            color: #64B5F6 !important;
+        }
+        
+        /* Chat input send button */
+        .stChatInput button {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+            color: #FFFFFF !important;
+            border-radius: 12px !important;
+        }
+        
+        .stChatInput button:hover {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;
+        }
+        
+        /* LOADING SCREEN - Fix dark background */
+        [data-testid="stAppViewContainer"] {
+            background: linear-gradient(135deg, #F0F4F8 0%, #E8F1F8 100%) !important;
+        }
+        
+        /* Loading spinner container */
+        [data-testid="stSpinner"],
+        .stSpinner {
+            background-color: transparent !important;
+        }
+        
+        /* Spinner itself - Blue theme */
+        .stSpinner > div {
+            border-top-color: #2196F3 !important;
+            border-right-color: #64B5F6 !important;
+            border-bottom-color: #90CAF9 !important;
+            border-left-color: #BBDEFB !important;
+        }
+        
+        /* Status container during loading */
+        .stStatus {
+            background-color: #E3F2FD !important;
+            border: 2px solid #2196F3 !important;
+            border-radius: 12px !important;
+        }
+        
+        .stStatus > div {
+            color: #1976D2 !important;
+        }
+        
         /* Sidebar styling */
-        [data-testid="stSidebar"] {
+        [data-testid="stSidebar"],
+        [data-testid="stSidebarContent"] {
             background-color: #FFFFFF !important;
             border-right: 3px solid #2196F3;
             box-shadow: 2px 0 10px rgba(33, 150, 243, 0.1);
@@ -312,7 +419,7 @@ def main():
         }
         
         /* Override all text colors to be dark */
-        .stApp p, .stApp span, .stApp div, .stApp label {
+        .stApp p, .stApp span, .stApp div, .stApp label, .stMarkdown {
             color: #2C3E50 !important;
         }
         
@@ -329,7 +436,7 @@ def main():
             font-weight: 600 !important;
         }
         
-        h3 {
+        h3, h4 {
             color: #2196F3 !important;
             font-weight: 600 !important;
         }
@@ -358,24 +465,6 @@ def main():
         .stChatMessage[data-testid*="assistant"] {
             background-color: #FFFFFF !important;
             border-left: 5px solid #64B5F6 !important;
-        }
-        
-        /* Chat input container */
-        .stChatInputContainer {
-            background-color: #FFFFFF !important;
-            border-radius: 16px !important;
-            border: 2px solid #2196F3 !important;
-            padding: 8px !important;
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15) !important;
-        }
-        
-        .stChatInputContainer textarea {
-            color: #1A1A1A !important;
-            font-size: 15px !important;
-        }
-        
-        .stChatInputContainer textarea::placeholder {
-            color: #64B5F6 !important;
         }
         
         /* Buttons */
@@ -418,10 +507,6 @@ def main():
             color: #2C3E50 !important;
             font-weight: 600 !important;
             font-size: 14px !important;
-        }
-        
-        [data-testid="stMetricDelta"] {
-            color: #424242 !important;
         }
         
         /* Info/Alert boxes */
@@ -564,20 +649,16 @@ def main():
         }
         
         /* File uploader */
+        .stFileUploader {
+            background-color: #F8FBFF !important;
+            border: 2px dashed #BBDEFB !important;
+            border-radius: 10px !important;
+            padding: 20px !important;
+        }
+        
         .stFileUploader label {
             color: #1976D2 !important;
             font-weight: 600 !important;
-        }
-        
-        /* Spinner */
-        .stSpinner > div {
-            border-top-color: #2196F3 !important;
-        }
-        
-        /* Divider */
-        hr {
-            border-color: #BBDEFB !important;
-            margin: 24px 0 !important;
         }
         
         /* Download button */
@@ -589,26 +670,37 @@ def main():
             font-weight: 600 !important;
         }
         
-        /* Markdown text */
-        .stMarkdown {
-            color: #2C3E50 !important;
+        /* Divider */
+        hr {
+            border-color: #BBDEFB !important;
+            margin: 24px 0 !important;
         }
         
-        /* Remove default dark theme for main content */
+        /* Remove any remaining dark backgrounds */
         .main .block-container {
             padding-top: 2rem !important;
             padding-bottom: 2rem !important;
-        }
-        
-        /* Header area */
-        header[data-testid="stHeader"] {
             background-color: transparent !important;
         }
         
-        /* Footer */
-        footer {
+        /* Markdown code blocks */
+        code {
+            background-color: #E3F2FD !important;
+            color: #1565C0 !important;
+            padding: 2px 6px !important;
+            border-radius: 4px !important;
+        }
+        
+        pre {
+            background-color: #F8FBFF !important;
+            border: 2px solid #BBDEFB !important;
+            border-radius: 8px !important;
+            padding: 16px !important;
+        }
+        
+        pre code {
             background-color: transparent !important;
-            color: #64B5F6 !important;
+            color: #1976D2 !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -628,27 +720,28 @@ def main():
     
     # Sidebar
     with st.sidebar:
+        # Configuration section - matching analytics style
         st.markdown("""
-            <div style='text-align: center; padding: 20px 0; margin-bottom: 24px; 
-                        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); 
-                        border-radius: 12px; box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);'>
-                <h2 style='color: #FFFFFF !important; margin: 0; font-size: 24px;'>⚙️ Configuration</h2>
+            <div style='background-color: #E3F2FD; padding: 16px; border-radius: 10px; 
+                        text-align: center; border: 2px solid #BBDEFB; margin-bottom: 20px;'>
+                <h2 style='color: #1976D2 !important; margin: 0; font-weight: 600; font-size: 20px;'>
+                    ⚙️ Configuration
+                </h2>
             </div>
         """, unsafe_allow_html=True)
     
-        # API Key section with better styling
+        # API Key section with matching style
         st.markdown("""
-            <div style='background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
-                        padding: 18px; border-radius: 12px; margin-bottom: 24px; 
-                        border: 2px solid #2196F3;'>
-                <p style='margin: 0; color: #1565C0 !important; font-weight: 700; font-size: 15px;'>
+            <div style='background-color: #E3F2FD; padding: 16px; border-radius: 10px; 
+                        text-align: center; border: 2px solid #BBDEFB; margin-bottom: 20px;'>
+                <p style='margin: 0; color: #1976D2 !important; font-weight: 600;'>
                     🆓 Using FREE Google Gemini API
                 </p>
             </div>
         """, unsafe_allow_html=True)
         
         # Set default API key
-        default_api_key = "AIzaSyClemJJjKHTuEIMtXy1-WJBJZkGmZK2Pzw"
+        default_api_key = api_key
     
         api_key = st.text_input(
             "🔑 Google Gemini API Key", 
@@ -663,25 +756,25 @@ def main():
                     st.session_state.knowledge_base = SimpleKnowledgeBase(SAMPLE_DOCUMENTS)
                     st.success("✅ Knowledge base loaded successfully!")
         
-        st.markdown("<hr style='margin: 30px 0; border: 2px solid #2196F3;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='margin: 30px 0; border: 2px solid #BBDEFB;'>", unsafe_allow_html=True)
         
-        # Analytics Dashboard
+        # Analytics Dashboard - matching configuration style
         st.markdown("""
-            <div style='text-align: center; padding: 20px 0; margin-bottom: 24px; 
-                        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); 
-                        border-radius: 12px; box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);'>
-                <h2 style='color: #FFFFFF !important; margin: 0; font-size: 24px;'>📊 Analytics Dashboard</h2>
+            <div style='background-color: #E3F2FD; padding: 16px; border-radius: 10px; 
+                        text-align: center; border: 2px solid #BBDEFB; margin-bottom: 20px;'>
+                <h2 style='color: #1976D2 !important; margin: 0; font-weight: 600; font-size: 20px;'>
+                    📊 Analytics Dashboard
+                </h2>
             </div>
         """, unsafe_allow_html=True)
         
         if st.session_state.analytics:
             df = pd.DataFrame(st.session_state.analytics)
             
-            # Key metrics with cards
+            # Key metrics with cards - matching style
             st.markdown("""
-                <div style='background-color: #FFFFFF; padding: 20px; border-radius: 12px; 
-                            border: 2px solid #2196F3; margin-bottom: 20px; 
-                            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);'>
+                <div style='background-color: #E3F2FD; padding: 16px; border-radius: 10px; 
+                            border: 2px solid #BBDEFB; margin-bottom: 20px;'>
             """, unsafe_allow_html=True)
             
             col1, col2 = st.columns(2)
