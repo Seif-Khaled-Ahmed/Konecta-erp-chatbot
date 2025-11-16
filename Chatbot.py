@@ -37,8 +37,11 @@ def call_private_api(data):
 # ============================================
 # CONFIGURATION
 # ============================================
-st.set_page_config(page_title="Konecta ERP Chatbot", page_icon="💼", layout="wide")
-
+st.set_page_config(
+    page_title="Konecta ERP Chatbot", 
+    page_icon="logo.jpeg",  # Use the logo file instead of emoji
+    layout="wide"
+)
 # Initialize session state
 if 'messages' not in st.session_state:
     st.session_state.messages = []
@@ -50,80 +53,17 @@ if 'knowledge_base' not in st.session_state:
 # ============================================
 # SAMPLE ERP DOCUMENTS (Replace with real docs)
 # ============================================
+from pypdf import PdfReader
+
+def read_pdf(path):
+    reader = PdfReader(path)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text() + "\n"
+    return text
 SAMPLE_DOCUMENTS = {
-    "HR_Leave_Policy": """
-    KONECTA LEAVE POLICY
-    
-    Annual Leave: All employees are entitled to 21 days of annual leave per year.
-    Leave must be requested at least 2 weeks in advance through the ERP system.
-    
-    Sick Leave: Employees can take up to 10 days of sick leave per year.
-    Medical certificate required for absences exceeding 3 consecutive days.
-    
-    Emergency Leave: Up to 5 days per year for family emergencies.
-    Requires manager approval within 24 hours.
-    
-    Leave Request Process:
-    1. Submit leave request through ERP chatbot or portal
-    2. Manager receives notification
-    3. Approval/rejection within 48 hours
-    4. HR updates leave balance automatically
-    """,
-    
-    "Finance_Expense_Policy": """
-    KONECTA EXPENSE REIMBURSEMENT POLICY
-    
-    Eligible Expenses:
-    - Travel: Flight, hotel, transportation (with receipts)
-    - Meals: Up to $50/day for business travel
-    - Office Supplies: Pre-approved purchases only
-    
-    Submission Process:
-    1. Upload receipts to ERP system
-    2. Fill expense form with justification
-    3. Finance team reviews within 5 business days
-    4. Reimbursement processed in next payroll cycle
-    
-    Non-reimbursable: Personal expenses, alcohol, entertainment without prior approval.
-    """,
-    
-    "ERP_User_Guide": """
-    KONECTA ERP SYSTEM GUIDE
-    
-    Login: Use your company email and password. MFA required.
-    
-    Dashboard Access:
-    - HR Module: View payslips, request leave, update personal info
-    - Finance Module: Submit expenses, view budget reports
-    - Analytics: Real-time KPI dashboards
-    
-    Common Issues:
-    - Password reset: Contact IT helpdesk
-    - Dashboard not loading: Clear browser cache
-    - Missing data: Contact your department admin
-    
-    Support: erp-support@konecta.com or use chatbot for instant help.
-    """,
-    
-    "HR_Performance_Review": """
-    KONECTA PERFORMANCE REVIEW PROCESS
-    
-    Review Cycle: Bi-annual (June and December)
-    
-    Process:
-    1. Self-assessment submission (2 weeks before review)
-    2. Manager evaluation
-    3. 1-on-1 review meeting
-    4. Goal setting for next period
-    
-    Criteria:
-    - Job Performance (40%)
-    - Initiative & Innovation (30%)
-    - Teamwork & Collaboration (20%)
-    - Attendance & Punctuality (10%)
-    
-    Ratings: Outstanding, Exceeds Expectations, Meets Expectations, Needs Improvement
-    """
+    "HR_Policy": read_pdf("Konecta Finance document.pdf"),
+    "Finance_Policy": read_pdf("Konecta HR document.pdf")
 }
 
 # ============================================
@@ -296,13 +236,7 @@ def expense_submission_form():
 # MAIN APP
 # ============================================
 def main():
-     # Use get() with fallback
-    api_key = st.secrets.get("API_KEY")
-    
-    if not api_key:
-        st.error("API key not found in secrets. Please configure it in Streamlit Cloud.")
-        st.stop()
-    # Enhanced Custom CSS - Complete dark theme removal with all fixes
+    # Enhanced Custom CSS - Updated with dark blue #2900C8
     st.markdown("""
         <style>
         /* Import Google Font */
@@ -325,7 +259,7 @@ def main():
         
         footer {
             background-color: transparent !important;
-            color: #64B5F6 !important;
+            color: #5E4BD4 !important;
         }
         
         /* CRITICAL: Fix bottom chat input dark background */
@@ -335,9 +269,9 @@ def main():
         .stChatInputContainer {
             background-color: #F0F4F8 !important;
             background: #F0F4F8 !important;
-            border-top: 3px solid #2196F3 !important;
+            border-top: 3px solid #2900C8 !important;
             padding: 20px !important;
-            box-shadow: 0 -4px 20px rgba(33, 150, 243, 0.1) !important;
+            box-shadow: 0 -4px 20px rgba(41, 0, 200, 0.1) !important;
         }
         
         /* Force remove dark background on bottom area */
@@ -354,9 +288,9 @@ def main():
         
         .stChatInput > div {
             background-color: #FFFFFF !important;
-            border: 2px solid #2196F3 !important;
+            border: 2px solid #2900C8 !important;
             border-radius: 16px !important;
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15) !important;
+            box-shadow: 0 4px 12px rgba(41, 0, 200, 0.15) !important;
         }
         
         /* Chat input textarea */
@@ -368,18 +302,18 @@ def main():
         }
         
         .stChatInput textarea::placeholder {
-            color: #64B5F6 !important;
+            color: #7E6FD4 !important;
         }
         
         /* Chat input send button */
         .stChatInput button {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+            background: linear-gradient(135deg, #2900C8 0%, #1F0096 100%) !important;
             color: #FFFFFF !important;
             border-radius: 12px !important;
         }
         
         .stChatInput button:hover {
-            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;
+            background: linear-gradient(135deg, #1F0096 0%, #150064 100%) !important;
         }
         
         /* LOADING SCREEN - Fix dark background */
@@ -393,31 +327,31 @@ def main():
             background-color: transparent !important;
         }
         
-        /* Spinner itself - Blue theme */
+        /* Spinner itself - Dark Blue theme */
         .stSpinner > div {
-            border-top-color: #2196F3 !important;
-            border-right-color: #64B5F6 !important;
-            border-bottom-color: #90CAF9 !important;
-            border-left-color: #BBDEFB !important;
+            border-top-color: #2900C8 !important;
+            border-right-color: #5E4BD4 !important;
+            border-bottom-color: #7E6FD4 !important;
+            border-left-color: #9E8FE4 !important;
         }
         
         /* Status container during loading */
         .stStatus {
-            background-color: #E3F2FD !important;
-            border: 2px solid #2196F3 !important;
+            background-color: #E8E4F9 !important;
+            border: 2px solid #2900C8 !important;
             border-radius: 12px !important;
         }
         
         .stStatus > div {
-            color: #1976D2 !important;
+            color: #2900C8 !important;
         }
         
         /* Sidebar styling */
         [data-testid="stSidebar"],
         [data-testid="stSidebarContent"] {
             background-color: #FFFFFF !important;
-            border-right: 3px solid #2196F3;
-            box-shadow: 2px 0 10px rgba(33, 150, 243, 0.1);
+            border-right: 3px solid #2900C8;
+            box-shadow: 2px 0 10px rgba(41, 0, 200, 0.1);
         }
         
         [data-testid="stSidebar"] * {
@@ -431,19 +365,19 @@ def main():
         
         /* Title styling */
         h1 {
-            color: #1565C0 !important;
+            color: #2900C8 !important;
             font-weight: 700 !important;
-            text-shadow: 0 2px 4px rgba(21, 101, 192, 0.1);
+            text-shadow: 0 2px 4px rgba(41, 0, 200, 0.1);
         }
         
         /* Headers */
         h2 {
-            color: #1976D2 !important;
+            color: #2900C8 !important;
             font-weight: 600 !important;
         }
         
         h3, h4 {
-            color: #2196F3 !important;
+            color: #2900C8 !important;
             font-weight: 600 !important;
         }
         
@@ -454,28 +388,28 @@ def main():
             padding: 20px !important;
             margin: 12px 0 !important;
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08) !important;
-            border: 1px solid #E3F2FD !important;
+            border: 1px solid #E8E4F9 !important;
         }
         
-        /* User message - Blue background */
+        /* User message - Purple/Blue background */
         [data-testid="stChatMessageContent"] {
             color: #1A1A1A !important;
         }
         
         .stChatMessage[data-testid*="user"] {
-            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%) !important;
-            border-left: 5px solid #2196F3 !important;
+            background: linear-gradient(135deg, #E8E4F9 0%, #D4CFEF 100%) !important;
+            border-left: 5px solid #2900C8 !important;
         }
         
         /* Assistant message - White background */
         .stChatMessage[data-testid*="assistant"] {
             background-color: #FFFFFF !important;
-            border-left: 5px solid #64B5F6 !important;
+            border-left: 5px solid #5E4BD4 !important;
         }
         
         /* Buttons */
         .stButton > button {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+            background: linear-gradient(135deg, #2900C8 0%, #1F0096 100%) !important;
             color: #FFFFFF !important;
             border-radius: 10px !important;
             border: none !important;
@@ -483,18 +417,18 @@ def main():
             font-weight: 600 !important;
             font-size: 15px !important;
             transition: all 0.3s ease !important;
-            box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3) !important;
+            box-shadow: 0 4px 10px rgba(41, 0, 200, 0.3) !important;
         }
         
         .stButton > button:hover {
-            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;
-            box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4) !important;
+            background: linear-gradient(135deg, #1F0096 0%, #150064 100%) !important;
+            box-shadow: 0 6px 16px rgba(41, 0, 200, 0.4) !important;
             transform: translateY(-2px);
         }
         
         /* Form submit button */
         .stFormSubmitButton > button {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+            background: linear-gradient(135deg, #2900C8 0%, #1F0096 100%) !important;
             color: #FFFFFF !important;
             border-radius: 10px !important;
             padding: 12px 28px !important;
@@ -504,7 +438,7 @@ def main():
         
         /* Metrics */
         [data-testid="stMetricValue"] {
-            color: #1565C0 !important;
+            color: #2900C8 !important;
             font-weight: 700 !important;
             font-size: 28px !important;
         }
@@ -517,10 +451,10 @@ def main():
         
         /* Info/Alert boxes */
         .stAlert {
-            background-color: #E3F2FD !important;
-            border-left: 5px solid #2196F3 !important;
+            background-color: #E8E4F9 !important;
+            border-left: 5px solid #2900C8 !important;
             border-radius: 12px !important;
-            color: #1565C0 !important;
+            color: #2900C8 !important;
             padding: 16px !important;
         }
         
@@ -549,20 +483,20 @@ def main():
         .streamlit-expanderHeader {
             background-color: #FFFFFF !important;
             border-radius: 10px !important;
-            border: 2px solid #BBDEFB !important;
-            color: #1976D2 !important;
+            border: 2px solid #D4CFEF !important;
+            color: #2900C8 !important;
             font-weight: 600 !important;
             padding: 12px !important;
         }
         
         .streamlit-expanderHeader:hover {
-            background-color: #E3F2FD !important;
-            border-color: #2196F3 !important;
+            background-color: #E8E4F9 !important;
+            border-color: #2900C8 !important;
         }
         
         .streamlit-expanderContent {
             background-color: #F8FBFF !important;
-            border: 2px solid #E3F2FD !important;
+            border: 2px solid #E8E4F9 !important;
             border-top: none !important;
             border-radius: 0 0 10px 10px !important;
             padding: 16px !important;
@@ -573,27 +507,27 @@ def main():
             background-color: #FFFFFF !important;
             border-radius: 16px !important;
             padding: 24px !important;
-            border: 2px solid #2196F3 !important;
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15) !important;
+            border: 2px solid #2900C8 !important;
+            box-shadow: 0 4px 12px rgba(41, 0, 200, 0.15) !important;
         }
         
         /* Text input */
         .stTextInput > div > div > input {
             background-color: #F8FBFF !important;
             border-radius: 10px !important;
-            border: 2px solid #BBDEFB !important;
+            border: 2px solid #D4CFEF !important;
             color: #1A1A1A !important;
             font-size: 15px !important;
             padding: 12px !important;
         }
         
         .stTextInput > div > div > input:focus {
-            border-color: #2196F3 !important;
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1) !important;
+            border-color: #2900C8 !important;
+            box-shadow: 0 0 0 3px rgba(41, 0, 200, 0.1) !important;
         }
         
         .stTextInput label {
-            color: #1976D2 !important;
+            color: #2900C8 !important;
             font-weight: 600 !important;
             font-size: 14px !important;
         }
@@ -602,11 +536,11 @@ def main():
         .stSelectbox > div > div {
             background-color: #F8FBFF !important;
             border-radius: 10px !important;
-            border: 2px solid #BBDEFB !important;
+            border: 2px solid #D4CFEF !important;
         }
         
         .stSelectbox label {
-            color: #1976D2 !important;
+            color: #2900C8 !important;
             font-weight: 600 !important;
             font-size: 14px !important;
         }
@@ -615,12 +549,12 @@ def main():
         .stDateInput > div > div > input {
             background-color: #F8FBFF !important;
             border-radius: 10px !important;
-            border: 2px solid #BBDEFB !important;
+            border: 2px solid #D4CFEF !important;
             color: #1A1A1A !important;
         }
         
         .stDateInput label {
-            color: #1976D2 !important;
+            color: #2900C8 !important;
             font-weight: 600 !important;
             font-size: 14px !important;
         }
@@ -629,13 +563,13 @@ def main():
         .stTextArea > div > div > textarea {
             background-color: #F8FBFF !important;
             border-radius: 10px !important;
-            border: 2px solid #BBDEFB !important;
+            border: 2px solid #D4CFEF !important;
             color: #1A1A1A !important;
             font-size: 15px !important;
         }
         
         .stTextArea label {
-            color: #1976D2 !important;
+            color: #2900C8 !important;
             font-weight: 600 !important;
             font-size: 14px !important;
         }
@@ -644,12 +578,12 @@ def main():
         .stNumberInput > div > div > input {
             background-color: #F8FBFF !important;
             border-radius: 10px !important;
-            border: 2px solid #BBDEFB !important;
+            border: 2px solid #D4CFEF !important;
             color: #1A1A1A !important;
         }
         
         .stNumberInput label {
-            color: #1976D2 !important;
+            color: #2900C8 !important;
             font-weight: 600 !important;
             font-size: 14px !important;
         }
@@ -657,13 +591,13 @@ def main():
         /* File uploader */
         .stFileUploader {
             background-color: #F8FBFF !important;
-            border: 2px dashed #BBDEFB !important;
+            border: 2px dashed #D4CFEF !important;
             border-radius: 10px !important;
             padding: 20px !important;
         }
         
         .stFileUploader label {
-            color: #1976D2 !important;
+            color: #2900C8 !important;
             font-weight: 600 !important;
         }
         
@@ -678,7 +612,7 @@ def main():
         
         /* Divider */
         hr {
-            border-color: #BBDEFB !important;
+            border-color: #D4CFEF !important;
             margin: 24px 0 !important;
         }
         
@@ -691,34 +625,44 @@ def main():
         
         /* Markdown code blocks */
         code {
-            background-color: #E3F2FD !important;
-            color: #1565C0 !important;
+            background-color: #E8E4F9 !important;
+            color: #2900C8 !important;
             padding: 2px 6px !important;
             border-radius: 4px !important;
         }
         
         pre {
             background-color: #F8FBFF !important;
-            border: 2px solid #BBDEFB !important;
+            border: 2px solid #D4CFEF !important;
             border-radius: 8px !important;
             padding: 16px !important;
         }
         
         pre code {
             background-color: transparent !important;
-            color: #1976D2 !important;
+            color: #2900C8 !important;
         }
         </style>
     """, unsafe_allow_html=True)
     
-    # Header with icon and better styling
-    st.markdown("""
-        <div style='text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #FFFFFF 0%, #E3F2FD 100%); 
-                    border-radius: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.15);'>
-            <h1 style='margin: 0; color: #1565C0; font-size: 42px; font-weight: 700;'>
-                💼 Konecta ERP Chatbot
+    # Load and encode the logo
+    import base64
+    try:
+        with open("logo.jpeg", "rb") as f:
+            logo_data = base64.b64encode(f.read()).decode()
+        logo_html = f'<img src="data:image/jpeg;base64,{logo_data}" style="width: 60px; height: 60px; margin-right: 15px; vertical-align: middle;">'
+    except:
+        # Fallback if logo file not found
+        logo_html = ''
+    
+    # Header with logo
+    st.markdown(f"""
+        <div style='text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #FFFFFF 0%, #E8E4F9 100%); 
+                    border-radius: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(41, 0, 200, 0.15);'>
+            <h1 style='margin: 0; color: #2900C8; font-size: 42px; font-weight: 700;'>
+                {logo_html}Konecta ERP Chatbot
             </h1>
-            <p style='color: #2196F3; font-size: 18px; margin-top: 12px; font-weight: 500;'>
+            <p style='color: #5E4BD4; font-size: 18px; margin-top: 12px; font-weight: 500;'>
                 AI-Powered Assistant with RAG + Structured Workflows
             </p>
         </div>
@@ -726,31 +670,19 @@ def main():
     
     # Sidebar
     with st.sidebar:
-        # Configuration section - matching analytics style
+        # Configuration section header only (no container)
         st.markdown("""
-            <div style='background-color: #E3F2FD; padding: 16px; border-radius: 10px; 
-                        text-align: center; border: 2px solid #BBDEFB; margin-bottom: 20px;'>
-                <h2 style='color: #1976D2 !important; margin: 0; font-weight: 600; font-size: 20px;'>
-                    ⚙️ Configuration
-                </h2>
-            </div>
-        """, unsafe_allow_html=True)
-    
-        # API Key section with matching style
-        st.markdown("""
-            <div style='background-color: #E3F2FD; padding: 16px; border-radius: 10px; 
-                        text-align: center; border: 2px solid #BBDEFB; margin-bottom: 20px;'>
-                <p style='margin: 0; color: #1976D2 !important; font-weight: 600;'>
-                    🆓 Using FREE Google Gemini API
-                </p>
-            </div>
+            <h2 style='color: #2900C8 !important; margin: 0 0 20px 0; font-weight: 600; font-size: 20px;'>
+                ⚙️ Configuration
+            </h2>
         """, unsafe_allow_html=True)
         
         # Set default API key
+        default_api_key = "AIzaSyClemJJjKHTuEIMtXy1-WJBJZkGmZK2Pzw"
     
         api_key = st.text_input(
             "🔑 Google Gemini API Key", 
-            value=api_key,
+            value=default_api_key,
             type="password",
             help="Enter your Google Gemini API key to start using the chatbot"
         )
@@ -761,25 +693,22 @@ def main():
                     st.session_state.knowledge_base = SimpleKnowledgeBase(SAMPLE_DOCUMENTS)
                     st.success("✅ Knowledge base loaded successfully!")
         
-        st.markdown("<hr style='margin: 30px 0; border: 2px solid #BBDEFB;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='margin: 30px 0; border: 2px solid #D4CFEF;'>", unsafe_allow_html=True)
         
-        # Analytics Dashboard - matching configuration style
-        st.markdown("""
-            <div style='background-color: #E3F2FD; padding: 16px; border-radius: 10px; 
-                        text-align: center; border: 2px solid #BBDEFB; margin-bottom: 20px;'>
-                <h2 style='color: #1976D2 !important; margin: 0; font-weight: 600; font-size: 20px;'>
-                    📊 Analytics Dashboard
-                </h2>
-            </div>
-        """, unsafe_allow_html=True)
-        
+        # Analytics section - only show when data exists
         if st.session_state.analytics:
+            st.markdown("""
+                <h2 style='color: #2900C8 !important; margin: 0 0 20px 0; font-weight: 600; font-size: 20px;'>
+                    📊 Analytics
+                </h2>
+            """, unsafe_allow_html=True)
+            
             df = pd.DataFrame(st.session_state.analytics)
             
-            # Key metrics with cards - matching style
+            # Key metrics with cards
             st.markdown("""
-                <div style='background-color: #E3F2FD; padding: 16px; border-radius: 10px; 
-                            border: 2px solid #BBDEFB; margin-bottom: 20px;'>
+                <div style='background-color: #E8E4F9; padding: 16px; border-radius: 10px; 
+                            border: 2px solid #D4CFEF; margin-bottom: 20px;'>
             """, unsafe_allow_html=True)
             
             col1, col2 = st.columns(2)
@@ -794,25 +723,25 @@ def main():
             
             # Intent distribution
             st.markdown("""
-                <h3 style='color: #1976D2 !important; margin: 24px 0 16px 0; font-size: 18px;'>
-                    📊 Query Types Distribution
+                <h3 style='color: #2900C8 !important; margin: 24px 0 16px 0; font-size: 18px;'>
+                    Query Types Distribution
                 </h3>
             """, unsafe_allow_html=True)
             
             intent_counts = df['intent'].value_counts()
             
-            # Custom colors for pie chart (blue theme)
+            # Custom colors for pie chart (dark blue theme)
             fig = px.pie(
                 values=intent_counts.values, 
                 names=intent_counts.index,
-                color_discrete_sequence=['#2196F3', '#64B5F6', '#90CAF9', '#BBDEFB', '#1976D2']
+                color_discrete_sequence=['#2900C8', '#5E4BD4', '#7E6FD4', '#9E8FE4', '#1F0096']
             )
             fig.update_layout(
                 paper_bgcolor='rgba(255,255,255,1)',
                 plot_bgcolor='rgba(255,255,255,1)',
-                font=dict(color='#1565C0', size=13, family='Inter'),
+                font=dict(color='#2900C8', size=13, family='Inter'),
                 showlegend=True,
-                legend=dict(bgcolor='rgba(255,255,255,0.9)', bordercolor='#BBDEFB', borderwidth=2)
+                legend=dict(bgcolor='rgba(255,255,255,0.9)', bordercolor='#D4CFEF', borderwidth=2)
             )
             fig.update_traces(textfont=dict(color='white', size=14, family='Inter'))
             st.plotly_chart(fig, use_container_width=True)
@@ -827,15 +756,6 @@ def main():
                     "text/csv",
                     use_container_width=True
                 )
-        else:
-            st.markdown("""
-                <div style='background-color: #E3F2FD; padding: 16px; border-radius: 10px; 
-                            text-align: center; border: 2px solid #BBDEFB;'>
-                    <p style='color: #1976D2 !important; margin: 0; font-weight: 600;'>
-                        📊 No analytics data yet. Start chatting to see insights!
-                    </p>
-                </div>
-            """, unsafe_allow_html=True)
     
     # Main chat interface
     if not api_key:
@@ -854,16 +774,16 @@ def main():
         """, unsafe_allow_html=True)
         
         st.markdown("""
-            <div style='background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+            <div style='background: linear-gradient(135deg, #E8E4F9 0%, #D4CFEF 100%); 
                         padding: 24px; border-radius: 16px; 
-                        border-left: 6px solid #2196F3;
-                        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);'>
-                <h4 style='color: #1565C0 !important; margin-top: 0; font-size: 20px;'>
+                        border-left: 6px solid #2900C8;
+                        box-shadow: 0 4px 12px rgba(41, 0, 200, 0.2);'>
+                <h4 style='color: #2900C8 !important; margin-top: 0; font-size: 20px;'>
                     🔑 How to get a FREE API key:
                 </h4>
-                <ol style='color: #1976D2 !important; font-size: 16px; line-height: 1.8; margin-bottom: 0;'>
+                <ol style='color: #2900C8 !important; font-size: 16px; line-height: 1.8; margin-bottom: 0;'>
                     <li>Visit <a href='https://makersuite.google.com/app/apikey' 
-                        target='_blank' style='color: #2196F3 !important; font-weight: 600; 
+                        target='_blank' style='color: #2900C8 !important; font-weight: 600; 
                         text-decoration: underline;'>Google AI Studio</a></li>
                     <li>Sign in with your Google account</li>
                     <li>Click 'Create API Key' button</li>
@@ -898,14 +818,14 @@ def main():
                 with st.expander("📚 View Sources", expanded=False):
                     for i, source in enumerate(message["sources"], 1):
                         st.markdown(f"""
-                            <div style='background: linear-gradient(135deg, #F8FBFF 0%, #E3F2FD 100%); 
+                            <div style='background: linear-gradient(135deg, #F8FBFF 0%, #E8E4F9 100%); 
                                         padding: 16px; border-radius: 12px; margin: 12px 0; 
-                                        border-left: 4px solid #64B5F6;
-                                        box-shadow: 0 2px 8px rgba(100, 181, 246, 0.15);'>
-                                <strong style='color: #1976D2 !important; font-size: 16px;'>
+                                        border-left: 4px solid #5E4BD4;
+                                        box-shadow: 0 2px 8px rgba(94, 75, 212, 0.15);'>
+                                <strong style='color: #2900C8 !important; font-size: 16px;'>
                                     📄 Source {i}: {source['name']}
                                 </strong>
-                                <span style='color: #64B5F6 !important; font-weight: 600; margin-left: 8px;'>
+                                <span style='color: #5E4BD4 !important; font-weight: 600; margin-left: 8px;'>
                                     (Relevance: {source['score']:.0%})
                                 </span>
                                 <p style='color: #424242 !important; margin-top: 12px; 
@@ -930,11 +850,11 @@ def main():
         if intent == 'leave_request':
             with st.chat_message("assistant"):
                 st.markdown("""
-                    <div style='background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                    <div style='background: linear-gradient(135deg, #E8E4F9 0%, #D4CFEF 100%); 
                                 padding: 18px; border-radius: 12px; 
-                                margin-bottom: 20px; border-left: 5px solid #2196F3;
-                                box-shadow: 0 3px 10px rgba(33, 150, 243, 0.15);'>
-                        <p style='color: #1565C0 !important; margin: 0; font-weight: 600; 
+                                margin-bottom: 20px; border-left: 5px solid #2900C8;
+                                box-shadow: 0 3px 10px rgba(41, 0, 200, 0.15);'>
+                        <p style='color: #2900C8 !important; margin: 0; font-weight: 600; 
                                   font-size: 16px;'>
                             ✅ I can help you submit a leave request. Let me open the form for you.
                         </p>
@@ -952,11 +872,11 @@ def main():
         elif intent == 'expense_submission':
             with st.chat_message("assistant"):
                 st.markdown("""
-                    <div style='background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+                    <div style='background: linear-gradient(135deg, #E8E4F9 0%, #D4CFEF 100%); 
                                 padding: 18px; border-radius: 12px; 
-                                margin-bottom: 20px; border-left: 5px solid #2196F3;
-                                box-shadow: 0 3px 10px rgba(33, 150, 243, 0.15);'>
-                        <p style='color: #1565C0 !important; margin: 0; font-weight: 600; 
+                                margin-bottom: 20px; border-left: 5px solid #2900C8;
+                                box-shadow: 0 3px 10px rgba(41, 0, 200, 0.15);'>
+                        <p style='color: #2900C8 !important; margin: 0; font-weight: 600; 
                                   font-size: 16px;'>
                             💰 I'll help you submit an expense. Here's the form:
                         </p>
