@@ -235,7 +235,7 @@ def expense_submission_form():
 # ============================================
 # MAIN APP
 # ============================================
-def main():
+ddef main():
     # Enhanced Custom CSS - Updated with dark blue #2900C8
     st.markdown("""
         <style>
