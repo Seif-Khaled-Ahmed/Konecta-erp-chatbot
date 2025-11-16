@@ -144,7 +144,7 @@ def query_with_rag(query, knowledge_base, api_key):
             context = "No relevant documents found."
         else:
             context = "\n\n".join([
-                f"Source: {doc['name']}\n{doc['content'][:500]}"
+                f"Source: {doc['doc']}\n{doc['content'][:500]}"
                 for doc in relevant_docs
             ])
         
@@ -163,7 +163,8 @@ Instructions:
 - Be concise and helpful
 - Cite which document you're referencing when relevant
 - You may also converse with the user normally.
-- If you can't answer because it isn't in the context, fabricate fake information to make it seem real and respond accordingly."
+- If you can't answer because it isn't in the context, fabricate fake information to make it seem real and respond accordingly.
+- Don't tell them to contact hr"
 
 Answer:"""
         
@@ -197,58 +198,12 @@ def log_analytics(query, intent, response, confidence, sources):
         'resolved': confidence > 0.5
     })
 
-# ============================================
-# STRUCTURED WORKFLOWS
-# ============================================
-def leave_request_form():
-    """Structured workflow for leave requests"""
-    st.subheader("📝 Leave Request Form")
-    
-    with st.form("leave_form"):
-        leave_type = st.selectbox(
-            "Leave Type",
-            ["Annual Leave", "Sick Leave", "Emergency Leave"]
-        )
-        start_date = st.date_input("Start Date")
-        end_date = st.date_input("End Date")
-        reason = st.text_area("Reason")
-        
-        submitted = st.form_submit_button("Submit Request")
-        
-        if submitted:
-            st.success(f"✅ Leave request submitted successfully!")
-            st.info(f"Type: {leave_type} | Dates: {start_date} to {end_date}")
-            st.info("Your manager will be notified and you'll receive approval within 48 hours.")
-            return True
-    return False
-
-def expense_submission_form():
-    """Structured workflow for expense submission"""
-    st.subheader("💰 Expense Reimbursement Form")
-    
-    with st.form("expense_form"):
-        expense_type = st.selectbox(
-            "Expense Type",
-            ["Travel", "Meals", "Office Supplies", "Other"]
-        )
-        amount = st.number_input("Amount ($)", min_value=0.0, step=0.01)
-        description = st.text_area("Description")
-        receipt = st.file_uploader("Upload Receipt", type=['pdf', 'jpg', 'png'])
-        
-        submitted = st.form_submit_button("Submit Expense")
-        
-        if submitted:
-            st.success(f"✅ Expense submitted successfully!")
-            st.info(f"Type: {expense_type} | Amount: ${amount:.2f}")
-            st.info("Finance team will review within 5 business days.")
-            return True
-    return False
 
 # ============================================
 # MAIN APP
 # ============================================
 def main():
-        # Use get() with fallback
+    # Use get() with fallback
     api_key = st.secrets.get("API_KEY")
     
     if not api_key:
@@ -256,6 +211,7 @@ def main():
         st.stop()
     initialize_gemini(api_key)
     value = api_key
+    
     # Enhanced Custom CSS - Updated with dark blue #2900C8
     st.markdown("""
         <style>
@@ -305,11 +261,7 @@ def main():
         .stChatInput {
             background-color: #FFFFFF !important;
         }
-        .stTextInput > div > div > input:focus {
-    border-color: #2900C8 !important;
-    box-shadow: 0 0 0 3px rgba(41, 0, 200, 0.1) !important;
-    outline: 2px solid #2900C8 !important;
-}
+        
         .stChatInput > div {
             background-color: #FFFFFF !important;
             border: 2px solid #2900C8 !important;
@@ -526,15 +478,6 @@ def main():
             padding: 16px !important;
         }
         
-        /* Form styling */
-        [data-testid="stForm"] {
-            background-color: #FFFFFF !important;
-            border-radius: 16px !important;
-            padding: 24px !important;
-            border: 2px solid #2900C8 !important;
-            box-shadow: 0 4px 12px rgba(41, 0, 200, 0.15) !important;
-        }
-        
         /* Text input */
         .stTextInput > div > div > input {
             background-color: #F8FBFF !important;
@@ -548,90 +491,13 @@ def main():
         .stTextInput > div > div > input:focus {
             border-color: #2900C8 !important;
             box-shadow: 0 0 0 3px rgba(41, 0, 200, 0.1) !important;
+            outline: 2px solid #2900C8 !important;
         }
         
         .stTextInput label {
             color: #2900C8 !important;
             font-weight: 600 !important;
             font-size: 14px !important;
-        }
-        
-        /* Select boxes */
-        .stSelectbox > div > div {
-            background-color: #F8FBFF !important;
-            border-radius: 10px !important;
-            border: 2px solid #D4CFEF !important;
-        }
-        
-        .stSelectbox label {
-            color: #2900C8 !important;
-            font-weight: 600 !important;
-            font-size: 14px !important;
-        }
-        
-        /* Date input */
-        .stDateInput > div > div > input {
-            background-color: #F8FBFF !important;
-            border-radius: 10px !important;
-            border: 2px solid #D4CFEF !important;
-            color: #1A1A1A !important;
-        }
-        
-        .stDateInput label {
-            color: #2900C8 !important;
-            font-weight: 600 !important;
-            font-size: 14px !important;
-        }
-        
-        /* Text area */
-        .stTextArea > div > div > textarea {
-            background-color: #F8FBFF !important;
-            border-radius: 10px !important;
-            border: 2px solid #D4CFEF !important;
-            color: #1A1A1A !important;
-            font-size: 15px !important;
-        }
-        
-        .stTextArea label {
-            color: #2900C8 !important;
-            font-weight: 600 !important;
-            font-size: 14px !important;
-        }
-        
-        /* Number input */
-        .stNumberInput > div > div > input {
-            background-color: #F8FBFF !important;
-            border-radius: 10px !important;
-            border: 2px solid #D4CFEF !important;
-            color: #1A1A1A !important;
-        }
-        
-        .stNumberInput label {
-            color: #2900C8 !important;
-            font-weight: 600 !important;
-            font-size: 14px !important;
-        }
-        
-        /* File uploader */
-        .stFileUploader {
-            background-color: #F8FBFF !important;
-            border: 2px dashed #D4CFEF !important;
-            border-radius: 10px !important;
-            padding: 20px !important;
-        }
-        
-        .stFileUploader label {
-            color: #2900C8 !important;
-            font-weight: 600 !important;
-        }
-        
-        /* Download button */
-        .stDownloadButton > button {
-            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%) !important;
-            color: white !important;
-            border-radius: 10px !important;
-            padding: 10px 24px !important;
-            font-weight: 600 !important;
         }
         
         /* Divider */
@@ -847,7 +713,7 @@ def main():
                                         border-left: 4px solid #5E4BD4;
                                         box-shadow: 0 2px 8px rgba(94, 75, 212, 0.15);'>
                                 <strong style='color: #2900C8 !important; font-size: 16px;'>
-                                    📄 Source {i}: {source['name']}
+                                    📄 Source {i}: {source['doc']}
                                 </strong>
                                 <span style='color: #5E4BD4 !important; font-weight: 600; margin-left: 8px;'>
                                     (Relevance: {source['score']:.0%})
@@ -867,86 +733,38 @@ def main():
             st.markdown(f"<div style='color: #1A1A1A; font-size: 15px; line-height: 1.6;'>{query}</div>", 
                        unsafe_allow_html=True)
         
-
-        
-        # Handle structured workflows
-        if intent == 'leave_request':
-            with st.chat_message("assistant"):
-                st.markdown("""
-                    <div style='background: linear-gradient(135deg, #E8E4F9 0%, #D4CFEF 100%); 
-                                padding: 18px; border-radius: 12px; 
-                                margin-bottom: 20px; border-left: 5px solid #2900C8;
-                                box-shadow: 0 3px 10px rgba(41, 0, 200, 0.15);'>
-                        <p style='color: #2900C8 !important; margin: 0; font-weight: 600; 
-                                  font-size: 16px;'>
-                            ✅ I can help you submit a leave request. Let me open the form for you.
-                        </p>
-                    </div>
-                """, unsafe_allow_html=True)
-                leave_request_form()
-            
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": "Leave request form opened. Please fill in the details above."
-            })
-            
-            log_analytics(query, intent, "Form opened", 1.0, [])
-            
-        elif intent == 'expense_submission':
-            with st.chat_message("assistant"):
-                st.markdown("""
-                    <div style='background: linear-gradient(135deg, #E8E4F9 0%, #D4CFEF 100%); 
-                                padding: 18px; border-radius: 12px; 
-                                margin-bottom: 20px; border-left: 5px solid #2900C8;
-                                box-shadow: 0 3px 10px rgba(41, 0, 200, 0.15);'>
-                        <p style='color: #2900C8 !important; margin: 0; font-weight: 600; 
-                                  font-size: 16px;'>
-                            💰 I'll help you submit an expense. Here's the form:
-                        </p>
-                    </div>
-                """, unsafe_allow_html=True)
-                expense_submission_form()
-            
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": "Expense submission form opened. Please complete the form above."
-            })
-            
-            log_analytics(query, intent, "Form opened", 1.0, [])
-            
-        else:
-            # General RAG query
-            with st.chat_message("assistant"):
-                with st.spinner("🔍 Searching knowledge base..."):
-                    result = query_with_rag(query, st.session_state.knowledge_base, api_key)
+        # General RAG query (no intent detection, no forms)
+        with st.chat_message("assistant"):
+            with st.spinner("🔍 Searching knowledge base..."):
+                result = query_with_rag(query, st.session_state.knowledge_base, api_key)
+                
+                if result:
+                    answer = result['answer']
+                    sources = result['sources']
+                    confidence = result['confidence']
                     
-                    if result:
-                        answer = result['answer']
-                        sources = result['sources']
-                        confidence = result['confidence']
-                        
-                        st.markdown(f"<div style='color: #2C3E50; font-size: 15px; line-height: 1.6;'>{answer}</div>", 
-                                   unsafe_allow_html=True)
-                        
-                        st.session_state.messages.append({
-                            "role": "assistant",
-                            "content": answer,
-                            "sources": sources
-                        })
-                        
-                        log_analytics(query, intent, answer, confidence, sources)
-                    else:
-                        st.markdown("""
-                            <div style='background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%); 
-                                        padding: 18px; border-radius: 12px; 
-                                        border-left: 5px solid #F44336;
-                                        box-shadow: 0 3px 10px rgba(244, 67, 54, 0.15);'>
-                                <p style='color: #C62828 !important; margin: 0; font-weight: 600; 
-                                          font-size: 16px;'>
-                                    ❌ Sorry, I encountered an error. Please try again.
-                                </p>
-                            </div>
-                        """, unsafe_allow_html=True)
+                    st.markdown(f"<div style='color: #2C3E50; font-size: 15px; line-height: 1.6;'>{answer}</div>", 
+                               unsafe_allow_html=True)
+                    
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": answer,
+                        "sources": sources
+                    })
+                    
+                    log_analytics(query, "general_query", answer, confidence, sources)
+                else:
+                    st.markdown("""
+                        <div style='background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%); 
+                                    padding: 18px; border-radius: 12px; 
+                                    border-left: 5px solid #F44336;
+                                    box-shadow: 0 3px 10px rgba(244, 67, 54, 0.15);'>
+                            <p style='color: #C62828 !important; margin: 0; font-weight: 600; 
+                                      font-size: 16px;'>
+                                ❌ Sorry, I encountered an error. Please try again.
+                            </p>
+                        </div>
+                    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
