@@ -137,10 +137,10 @@ User Question: {query}
 
 Instructions:
 - Answer based on the context provided
-- If the answer isn't in the context, say "I don't have that information in the knowledge base"
 - Be concise and helpful
 - Cite which document you're referencing when relevant
--you may also converse with the user normally but not fabricate information.
+- You may also converse with the user normally but not fabricate information.
+- If you can't answer because it isn't in the context, say "I don't have that information in the knowledge base"
 
 Answer:"""
         
