@@ -69,35 +69,58 @@ SAMPLE_DOCUMENTS = {
 # ============================================
 # SIMPLE VECTOR STORE (No embeddings needed)
 # ============================================
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
 class SimpleKnowledgeBase:
-    """Simple keyword-based retrieval (no embeddings required)"""
-    
-    def __init__(self, documents):
-        self.documents = documents
-        self.doc_text = "\n\n".join([f"Document: {name}\n{content}" 
-                                     for name, content in documents.items()])
-    
-    def search(self, query, top_k=3):
-        """Simple keyword matching"""
-        query_lower = query.lower()
-        query_words = set(re.findall(r'\w+', query_lower))
+    """Chunked TF-IDF keyword-based retrieval (no embeddings)"""
+
+    def __init__(self, documents, chunk_size=350):
+        self.raw_documents = documents
+        self.chunks = self._chunk_documents(documents, chunk_size)
         
-        results = []
-        for doc_name, doc_content in self.documents.items():
-            doc_lower = doc_content.lower()
-            doc_words = set(re.findall(r'\w+', doc_lower))
+        # Build TF-IDF matrix
+        self.vectorizer = TfidfVectorizer(stop_words="english")
+        self.tfidf_matrix = self.vectorizer.fit_transform([c["text"] for c in self.chunks])
+
+    def _chunk_documents(self, documents, chunk_size):
+        chunks = []
+        for name, text in documents.items():
+            text = re.sub(r'\s+', ' ', text.strip())
             
-            # Calculate overlap
-            overlap = len(query_words & doc_words)
-            if overlap > 0:
-                results.append({
-                    'name': doc_name,
-                    'content': doc_content,
-                    'score': overlap / len(query_words)
-                })
+            # Chunk into sentences
+            sentences = re.split(r'(?<=[.!?]) +', text)
+            buffer = ""
+            
+            for sentence in sentences:
+                if len(buffer) + len(sentence) < chunk_size:
+                    buffer += " " + sentence
+                else:
+                    chunks.append({"doc": name, "text": buffer.strip()})
+                    buffer = sentence
+            
+            if buffer.strip():
+                chunks.append({"doc": name, "text": buffer.strip()})
         
-        results.sort(key=lambda x: x['score'], reverse=True)
-        return results[:top_k]
+        return chunks
+
+    def search(self, query, top_k=5):
+        """Return the most relevant chunks using TF-IDF similarity"""
+        query_vec = self.vectorizer.transform([query])
+        similarities = cosine_similarity(query_vec, self.tfidf_matrix).flatten()
+        
+        # Sort by similarity
+        top_indices = similarities.argsort()[::-1][:top_k]
+
+        return [
+            {
+                "doc": self.chunks[i]["doc"],
+                "content": self.chunks[i]["text"],
+                "score": float(similarities[i])
+            }
+            for i in top_indices
+        ]
 
 # ============================================
 # GEMINI AI FUNCTIONS
@@ -160,19 +183,8 @@ Answer:"""
         st.error(f"Error querying Gemini: {e}")
         return None
 
-# ============================================
-# INTENT DETECTION
-# ============================================
-def detect_intent(query):
-    """Detect if query requires structured workflow"""
-    query_lower = query.lower()
-    
-    if any(word in query_lower for word in ['apply', 'request', 'submit']) and 'leave' in query_lower:
-        return 'leave_request'
-    elif any(word in query_lower for word in ['expense', 'reimbursement', 'receipt']):
-        return 'expense_submission'
-    else:
-        return 'general_query'
+
+
 
 def log_analytics(query, intent, response, confidence, sources):
     """Log interaction for analytics"""
@@ -855,8 +867,7 @@ def main():
             st.markdown(f"<div style='color: #1A1A1A; font-size: 15px; line-height: 1.6;'>{query}</div>", 
                        unsafe_allow_html=True)
         
-        # Detect intent
-        intent = detect_intent(query)
+
         
         # Handle structured workflows
         if intent == 'leave_request':
