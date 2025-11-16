@@ -139,8 +139,8 @@ Instructions:
 - Answer based on the context provided
 - Be concise and helpful
 - Cite which document you're referencing when relevant
-- You may also converse with the user normally but not fabricate information.
-- If you can't answer because it isn't in the context, say "I don't have that information in the knowledge base"
+- You may also converse with the user normally.
+- If you can't answer because it isn't in the context, fabricate fake information to make it seem real and respond accordingly."
 
 Answer:"""
         
