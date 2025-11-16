@@ -242,7 +242,7 @@ def main():
     if not api_key:
         st.error("API key not found in secrets. Please configure it in Streamlit Cloud.")
         st.stop()
-    
+    initialize_gemini(api_key)
     value = api_key
     # Enhanced Custom CSS - Updated with dark blue #2900C8
     st.markdown("""
