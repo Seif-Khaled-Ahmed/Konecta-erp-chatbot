@@ -559,7 +559,86 @@ def main():
     """, unsafe_allow_html=True)
     
     # Sidebar
+    with st.sidebar:
+        # Configuration section header only (no container)
+        st.markdown("""
+            <h2 style='color: #2900C8 !important; margin: 0 0 20px 0; font-weight: 600; font-size: 20px;'>
+                ⚙️ Configuration
+            </h2>
+        """, unsafe_allow_html=True)
+        
+        # Set default API key
     
+        
+        if api_key and not st.session_state.knowledge_base:
+            with st.spinner("🔄 Initializing knowledge base..."):
+                if initialize_gemini(api_key):
+                    st.session_state.knowledge_base = SimpleKnowledgeBase(SAMPLE_DOCUMENTS)
+                    st.success("✅ Knowledge base loaded successfully!")
+        
+        st.markdown("<hr style='margin: 30px 0; border: 2px solid #D4CFEF;'>", unsafe_allow_html=True)
+        
+        # Analytics section - only show when data exists
+        if st.session_state.analytics:
+            st.markdown("""
+                <h2 style='color: #2900C8 !important; margin: 0 0 20px 0; font-weight: 600; font-size: 20px;'>
+                    📊 Analytics
+                </h2>
+            """, unsafe_allow_html=True)
+            
+            df = pd.DataFrame(st.session_state.analytics)
+            
+            # Key metrics with cards
+            st.markdown("""
+                <div style='background-color: #E8E4F9; padding: 16px; border-radius: 10px; 
+                            border: 2px solid #D4CFEF; margin-bottom: 20px;'>
+            """, unsafe_allow_html=True)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("📈 Total Queries", len(df))
+                st.metric("🎯 Avg Confidence", f"{df['confidence'].mean():.2%}")
+            with col2:
+                st.metric("✅ Resolution Rate", f"{(df['resolved'].sum() / len(df)):.2%}")
+                st.metric("📚 Avg Sources", f"{df['sources_count'].mean():.1f}")
+            
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Intent distribution
+            st.markdown("""
+                <h3 style='color: #2900C8 !important; margin: 24px 0 16px 0; font-size: 18px;'>
+                    Query Types Distribution
+                </h3>
+            """, unsafe_allow_html=True)
+            
+            intent_counts = df['intent'].value_counts()
+            
+            # Custom colors for pie chart (dark blue theme)
+            fig = px.pie(
+                values=intent_counts.values, 
+                names=intent_counts.index,
+                color_discrete_sequence=['#2900C8', '#5E4BD4', '#7E6FD4', '#9E8FE4', '#1F0096']
+            )
+            fig.update_layout(
+                paper_bgcolor='rgba(255,255,255,1)',
+                plot_bgcolor='rgba(255,255,255,1)',
+                font=dict(color='#2900C8', size=13, family='Inter'),
+                showlegend=True,
+                legend=dict(bgcolor='rgba(255,255,255,0.9)', bordercolor='#D4CFEF', borderwidth=2)
+            )
+            fig.update_traces(textfont=dict(color='white', size=14, family='Inter'))
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Export analytics button
+            if st.button("📥 Export Analytics", use_container_width=True):
+                csv = df.to_csv(index=False)
+                st.download_button(
+                    "⬇️ Download CSV", 
+                    csv, 
+                    "analytics.csv", 
+                    "text/csv",
+                    use_container_width=True
+                )
     
     # Main chat interface
     if not api_key:
