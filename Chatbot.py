@@ -741,11 +741,10 @@ def main():
         """, unsafe_allow_html=True)
         
         # Set default API key
-        default_Gapi_key = api_key
     
         api_key = st.text_input(
             "🔑 Google Gemini API Key", 
-            value=default_Gapi_key,
+            value=api_key,
             type="password",
             help="Enter your Google Gemini API key to start using the chatbot"
         )
