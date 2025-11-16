@@ -236,6 +236,14 @@ def expense_submission_form():
 # MAIN APP
 # ============================================
 def main():
+        # Use get() with fallback
+    api_key = st.secrets.get("API_KEY")
+    
+    if not api_key:
+        st.error("API key not found in secrets. Please configure it in Streamlit Cloud.")
+        st.stop()
+    
+    value = api_key
     # Enhanced Custom CSS - Updated with dark blue #2900C8
     st.markdown("""
         <style>
